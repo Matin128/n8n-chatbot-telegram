@@ -41,7 +41,7 @@
 
 ## 🧩 معماری ورکفلو (ساختار گره‌ها در n8n)
 <p align="center">
-  <img src="./workflow-overview.png" alt="Telegram and Bale AI Bot Architecture" width="800">
+  <img src="./workflow.png" alt="Telegram and Bale AI Bot Architecture" width="800">
 </p>
 
 > 📌 **مراحل اجرای اتوماسیون:** چک کردن قفل اسپم در Redis -> اعتبارسنجی ورودی متنی (عدم ارسال فایل/ویس) -> بازیابی داده‌ها با Qdrant Vector Store -> اجرای AI Agent با مدل‌های Gemini/Qwen -> اعتبارسنجی لید و فراخوانی ابزار ثبت سفارش -> ایمن‌سازی متن با JS -> ارسال پاسخ نهایی.
