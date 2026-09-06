@@ -24,7 +24,6 @@
 * ----
 
 ## 🎬 دموی کامل فرآیند
-https://github.com/user-attachments/assets/fb25027f-ae60-43ab-ad89-51a0d79cc92b
 
 
 
