@@ -24,16 +24,10 @@
 * ----
 
 ## 🎬 دموی کامل فرآیند
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/demo.mp4">
-  </a>
-</p>
+https://github.com/user-attachments/assets/fb25027f-ae60-43ab-ad89-51a0d79cc92b
 
-<p align="center">
-  <video src="https://github.com/user-attachments/assets/demo.mp4" controls width="800">
-    مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
-  </video>
-</p>
+
+
 
 > 🔄 **در این ویدیو می‌بینید:** چت‌بات ابتدا به سوالات کاربر بر اساس دیتابیس پاسخ داده، در صورت ارسال پیام‌های متوالی قفل اسپم را فعال می‌کند، تنها فرمت متنی را می‌پذیرد و در نهایت پس از دریافت و اعتبارسنجی شماره تماس و مشخصات، سفارش را به ورکفلوی فروش متصل می‌کند.
 
