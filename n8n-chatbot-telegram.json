@@ -1,0 +1,843 @@
+{
+  "name": "n8n-chatbot-telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "matbook-n8n",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        -1776,
+        800
+      ],
+      "id": "e26935e2-862d-41de-9943-2635603293c0",
+      "name": "Qdrant Vector Store"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "تو دستیار هوشمند  کتابفروشی Matbook هستی. وظیفه: راهنمایی، پاسخ به سوالات کاتالوگ و ثبت سفارش خرید.\n\nقوانین پاسخ‌دهی:\n۱. RAG First: برای تمام سوالات درباره کتاب، قیمت، موجودی، نویسنده یا خلاصه، حتماً ابتدا ابزار search_knowledge_base را صدا بزن. (استثنا: پیام‌های حاوی اطلاعات شخصی یا تایید سفارش نیازی به ابزار ندارند).\n۲. Strict Grounding: فقط بر اساس داده‌های بازیابی‌شده از search_knowledge_base پاسخ بده. از حدس زدن، تخمین قیمت یا ادعای موجودی خارج از دیتابیس خودداری کن.\n۳. عدم وجود داده: اگر کتاب در دیتابیس یافت نشد، بگو: «متأسفانه اطلاعاتی درباره این کتاب در سیستم ما ثبت نشده است.»\n۴. خلاصه کتاب: فقط از خلاصه رسمی موجود در دیتابیس استفاده کن. اگر نبود بگو: «خلاصه رسمی برای این کتاب ثبت نشده است.»\n۵. حفظ حوزه کاری: برای موضوعات غیرمرتبط بگو: «من دستیار تخصصی کتابفروشی هستم و تنها در زمینه کتاب‌ها می‌توانم شما را راهنمایی کنم.»\n۶. رفتار نامناسب: در صورت ناسزا بگو: «لطفاً احترام را رعایت فرمایید. چطور می‌توانم در زمینه کتاب به شما کمک کنم؟»\n\nفرآیند ثبت سفارش (Send Order To Sales):\nبرای ثبت سفارش احتیاج به: ۱) نام و نام خانوادگی، ۲) شماره موبایل، ۳) نام کتاب، ۴) تعداد داری. هر زمان کاربر شماره موبایل و مشخصات را فرستاد، بلافاصله ابزار Send Order To Sales را با اطلاعات ورودی صدا بزن.\n\nلحن: محترمانه، صمیمی، کوتاه و واضح. نکات کلیدی (نام کتاب، قیمت، موجودی) را برجسته کن."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1296,
+        -32
+      ],
+      "id": "6614c994-bcde-43af-b3f8-70c3bd6fa6b0",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "executeOnce": true,
+      "onError": "continueErrorOutput",
+      "notes": "در حال حاضر مشکلی در ارتباط با سرور پیش آمده، لطفاً دوباره تلاش کنید."
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "برای جستجوی اطلاعات، قوانین، کاتالوگ و پاسخ به سوالات کاربران درباره کتاب‌ها از این ابزار استفاده کن.",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "matbook-n8n",
+          "mode": "id"
+        },
+        "topK": 3,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        -1072,
+        144
+      ],
+      "id": "2d6da1df-b8fd-48e6-9ade-14fccbb4db90",
+      "name": "search_knowledge_base"
+    },
+    {
+      "parameters": {
+        "formTitle": "form-productions",
+        "formDescription": "send your forms",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "form",
+              "fieldType": "file",
+              "acceptFileTypes": ".csv"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -2448,
+        800
+      ],
+      "id": "92dadc24-988f-4914-a0e6-f537bdefdefc",
+      "name": "On form submission"
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "form",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -2224,
+        800
+      ],
+      "id": "4bbf9857-9957-43c3-8a1c-46479f621e25",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b3a778b1-240b-4cfa-b126-28bfe9089ada",
+              "name": "اسم کتاب",
+              "value": "={{ $json['اسم کتاب'] }}",
+              "type": "string"
+            },
+            {
+              "id": "81a9e48d-cdc6-4fb0-84ed-dca03671beff",
+              "name": "نویسنده",
+              "value": "={{ $json['نویسنده'] }}",
+              "type": "string"
+            },
+            {
+              "id": "85307c4b-6d79-42ce-acaf-7d9e6dd749f6",
+              "name": "قیمت",
+              "value": "={{ Number($json['قیمت'].toString().replace(/[^0-9]/g, '')) }}",
+              "type": "number"
+            },
+            {
+              "id": "2376a11c-34eb-4509-9de2-4dab86e41636",
+              "name": "وضعیت موجودی",
+              "value": "={{ $json['وضعیت موجودی'] === 'موجود' || $json['وضعیت موجودی'] === 'بله' }}",
+              "type": "boolean"
+            },
+            {
+              "id": "5dee743f-328d-4d11-b122-6f586cb6e9a9",
+              "name": "pageContent",
+              "value": "=نام کتاب: {{ $json['اسم کتاب'] }} | نویسنده: {{ $json['نویسنده'] }} | قیمت: {{ $json['قیمت'] }} تومان",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -2000,
+        800
+      ],
+      "id": "99aa9987-dff4-4757-817c-fbfde31ad4e6",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.pageContent }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "اسم کتاب",
+                "value": "={{ $('Edit Fields').item.json['اسم کتاب'] }}"
+              },
+              {
+                "name": "نویسنده",
+                "value": "={{ $('Edit Fields').item.json['نویسنده'] }}"
+              },
+              {
+                "name": "قیمت",
+                "value": "={{ $('Edit Fields').item.json['قیمت'] }}"
+              },
+              {
+                "name": "وضعیت موجودی",
+                "value": "={{ $('Edit Fields').item.json['وضعیت موجودی'] }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -1712,
+        1040
+      ],
+      "id": "692f0fa2-137d-4033-8e8f-753b5c20e4e3",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -2480,
+        416
+      ],
+      "id": "f2b0301e-bf48-454b-be92-2f094d06fc06",
+      "name": "Telegram Trigger",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "alwaysOutputData": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.safeOutput }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -368,
+        80
+      ],
+      "id": "6eb9366d-c15f-4c8d-bf77-abbbf0d6b3fe",
+      "name": "Send a text message"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id.toString() }}",
+        "sessionTTL": 86400
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.6,
+      "position": [
+        -1216,
+        208
+      ],
+      "id": "79936f48-4ac7-4c39-8225-d00cdcfb9114",
+      "name": "Redis Chat Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "// دریافت متن خروجی از ایجنت\nlet outputText = $input.first().json.output || \"\";\n\n// ۱. حذف فقط کاراکترهای * و -\noutputText = outputText.replace(/[*\\-]/g, \"\");\n\n// ۲. ایمن‌سازی کاراکترهای اصلی HTML برای تلگرام\noutputText = outputText\n  .replace(/&/g, \"&amp;\")\n  .replace(/</g, \"&lt;\")\n  .replace(/>/g, \"&gt;\");\n\n// بازگرداندن متن با حفظ کامل فاصله‌ها و اینترها\nreturn {\n  json: {\n    safeOutput: outputText.trim()\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -704,
+        80
+      ],
+      "id": "a13ea65f-5012-4126-9975-666af6380c8f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8089a077-c2bb-428e-bc42-9677fb139baf",
+              "leftValue": "={{ $('Telegram Trigger').item.json.message.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1728,
+        192
+      ],
+      "id": "e857a123-8504-4447-a35d-05c5a0b252bb",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "لطفاً پیام خود را به صورت متنی ارسال کنید.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1152,
+        704
+      ],
+      "id": "17f0e72d-7c10-49b8-8118-9250da461c92",
+      "name": "Send a text message2"
+    },
+    {
+      "parameters": {
+        "description": "ثبت سفارش کتاب برای تیم فروش.\n\nفقط وقتی اجرا کن که این ۴ مورد کامل باشند:\n- نام و نام خانوادگی\n- شماره موبایل معتبر ۱۱ رقمی با شروع 09 یا ۰۹\n- نام کتاب\n- تعداد\n\nاگر هر مورد ناقص یا نامعتبر است، اجرا نکن و ابتدا اطلاعات لازم را از کاربر بگیر. پس از تکمیل و اعتبارسنجی هر ۴ مورد، ابزار را اجرا کن.",
+        "workflowId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "customer_name": "={{ $fromAI('customer_name', 'نام و نام خانوادگی خریدار') }}",
+            "book_name": "={{ $fromAI('book_name', 'نام کتابی که کاربر درخواست کرده') }}",
+            "quantity": "={{ $fromAI('quantity', 'تعداد کتاب فقط به صورت عدد انگلیسی یا فارسی') }}",
+            "customer_phone": "={{ $fromAI('customer_phone', 'شماره تماس خریدار') }}",
+            "user_info": "={{ $('Telegram Trigger').item.json.message.from.username ? '@' + $('Telegram Trigger').item.json.message.from.username : $('Telegram Trigger').item.json.message.chat.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "book_name",
+              "displayName": "book_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "quantity",
+              "displayName": "quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "user_info",
+              "displayName": "user_info",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "customer_name",
+              "displayName": "customer_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "customer_phone",
+              "displayName": "customer_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -784,
+        720
+      ],
+      "id": "1bb05dd1-522c-46c3-8ee9-fdb70d8f53e0",
+      "name": "Call 'Send Order To Sales'"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "da32b497-c14c-49b1-98dd-629fe22be6f3",
+              "leftValue": "={{ $json[\"lock:\" + $('Telegram Trigger').item.json.message.chat.id] }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2000,
+        416
+      ],
+      "id": "272fd352-0ac1-4c5b-8cbe-af02da7de940",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "لطفاً تا دریافت پاسخ پیام قبلی تأمل کنید",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1728,
+        432
+      ],
+      "id": "b250f19c-b9c5-42bc-b590-bc265d5fe773",
+      "name": "Send a text message3"
+    },
+    {
+      "parameters": {
+        "content": "سیستم تداخل پیام تا کاربر در یک زمان کوتاه پیام زیادی نفرستد  \nجلوگیری از اسپم ",
+        "height": 512,
+        "width": 1024,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2544,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "8d7a5074-6e0d-4cb0-a7f2-68b49c873249",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "جلوگیری از ارسال پیام عکس یا ویدیو یا ویس به ربات ",
+        "height": 320,
+        "width": 304,
+        "color": "#B33737"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1248,
+        592
+      ],
+      "typeVersion": 1,
+      "id": "96471d63-9671-436d-b422-0b252391126c",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "پیام به کاربر در صورت کار نکردن ربات ",
+        "height": 304,
+        "width": 368,
+        "color": "#265E49"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -560,
+        336
+      ],
+      "typeVersion": 1,
+      "id": "83e33e28-ce6e-4b28-9668-2e31026692d6",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "ورود دیتای مورد نیاز چت بات ",
+        "height": 512,
+        "width": 1088,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2544,
+        656
+      ],
+      "typeVersion": 1,
+      "id": "45d38caa-0c26-499b-9397-cd8a65649ae6",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "اجرای ورکفلوی برای ارسال لید به تیم فروش",
+        "height": 192,
+        "width": 304,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -880,
+        656
+      ],
+      "typeVersion": 1,
+      "id": "1989d90a-1505-4c6b-85ad-d32009ae5629",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "operation": "incr",
+        "key": "=lock:{{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "expire": true,
+        "ttl": 5
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -2224,
+        416
+      ],
+      "id": "c2c2b698-3386-4872-a1e6-d88265bae852",
+      "name": "Redis"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=در حال حاضر مشکلی در ارتباط با سرور پیش آمده لطفاً دقایقی دیگر دوباره تلاش کنید.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -432,
+        432
+      ],
+      "id": "4c81f39a-35bb-462c-b359-462dc1864e98",
+      "name": "Send a text message for error"
+    },
+    {
+      "parameters": {
+        "content": "جلوگیری از اسپم کاربر و قفل کردم 5 ثانیه ای چت ",
+        "height": 256,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2304,
+        320
+      ],
+      "typeVersion": 1,
+      "id": "ad4f1e9f-25c8-4c6a-8b1c-af5c924f6fe2",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "qwen3.8-flash",
+          "mode": "list",
+          "cachedResultName": "qwen3.8-flash"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1440,
+        160
+      ],
+      "id": "1ea034d0-2922-482a-b5dc-53c71e02350a",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1264,
+        416
+      ],
+      "id": "7573a786-9c74-4ad7-84e4-d2f7fdd73a80",
+      "name": "Embeddings OpenAI"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -1328,
+        176
+      ],
+      "id": "b12b5fe3-04d2-4977-887c-a46f0c74678f",
+      "name": "Google Gemini Chat Model"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message for error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search_knowledge_base": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Redis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Send Order To Sales'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Send a text message3": {
+      "main": [
+        []
+      ]
+    },
+    "Redis": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message for error": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "search_knowledge_base",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": []
+}
